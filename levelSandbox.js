@@ -12,8 +12,8 @@ function addLevelDBData(key, value) {
     db.put(key, value)
       .on('error', function (err) {
         reject(err);
-      }).on('close', function () {
-        resolve(db);
+      }).on('close', function (value) {
+        resolve(value);
       })
   })
 }
@@ -24,14 +24,14 @@ function getLevelDBData(key) {
     db.get(key)
       .on('error', function (err) {
         reject(err);
-      }).on('close', function () {
-        resolve(db);
+      }).on('close', function (value) {
+        resolve(value);
       })
   });
 }
 
 // Add data to levelDB with value
-function addDataToLevelDB(value) {
+function addDataToLevelDB(key, value) {
   let i = 0;
   return new Promise(function (resolve, reject) {
     db.createReadStream()
@@ -41,10 +41,24 @@ function addDataToLevelDB(value) {
         reject(err);
       }).on('close', function () {
         console.log('Block #' + i);
-        addLevelDBData(i, value);
-        resolve(db);
+        addLevelDBData(key, value);
+        resolve(value);
       });
   });
+}
+
+function getChainHeight() {
+  let height = 0;
+  return new Promise(function (resolve, reject) {
+    db.createReadStream()
+      .on('data', function () {
+        height++;
+      }).on('error', function (err) {
+        reject(err);
+      }).on('close', function () {
+        resolve(height);
+      })
+  })
 }
 
 /* ===== Testing ==============================================================|
