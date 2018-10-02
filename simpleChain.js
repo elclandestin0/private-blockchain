@@ -32,14 +32,15 @@ class Blockchain {
   // Add new block
   addBlock(newBlock) {
     // Block height
-    level.getDBLength().then((height) => {
-      newBlock.height = height + 1;
-      if (height > 0) {
-        level.getLevelDBData(newBlock.height).then(value => {
-          newBlock.previousBlockHash = value.hash;
-        })
-      }
-    });
+    level.getDBLength()
+      .then((height) => {
+        newBlock.height = height + 1;
+        if (height > 0) {
+          level.getLevelDBData(newBlock.height).then(value => {
+            newBlock.previousBlockHash = value.hash;
+          })
+        }
+      });
     // UTC timestamp
     newBlock.time = new Date().getTime().toString().slice(0, -3);
     // Block hash with SHA256 using newBlock and converting to a string
