@@ -6,7 +6,20 @@ const level = require('level');
 const chainDB = './chaindata';
 const db = level(chainDB);
 
-// Add data to levelDB with key/value pair
+function addLevelDBData(key, value) {
+  return new Promise(function (resolve, reject) {
+    db.put(key, value)
+      .then(function () {
+        resolve(value);
+      })
+      .catch(function (error) {
+        console.log("found an error while adding DB data!");
+        reject(error);
+      })
+  });
+}
+
+
 function addLevelDBData(key, value) {
   return new Promise(function (resolve, reject) {
     db.put(key, value)
@@ -24,8 +37,8 @@ function addLevelDBData(key, value) {
 function getLevelDBData(key) {
   return new Promise(function (resolve, reject) {
     db.get(key)
-      .then(function () {
-        resolve(key);
+      .then(function (value) {
+        resolve(value);
       })
       .catch(function (error) {
         console.log("found an error while getting DB data!");
@@ -42,11 +55,29 @@ function addDataToLevelDB(value) {
       .on('data', function (data) {
         i++;
       }).on('error', function (err) {
+        reject(err);
         return console.log('Unable to read data stream!', err)
       })
       .on('close', function () {
         console.log("Block #" + i);
         addLevelDBData(i, value);
+      })
+  })
+}
+
+function getDBLength() {
+  return new Promise(function (resolve, reject) {
+    let height = 0;
+    db.createReadStream()
+      .on('data', function (data) {
+        height++;
+      })
+      .on('error', function (err) {
+        reject(err);
+        return console.log("Unable to get data height!", err);
+      })
+      .on('close', function () {
+        resolve(height);
       })
   })
 }
@@ -69,3 +100,11 @@ function addDataToLevelDB(value) {
     if (--i) theLoop(i);
   }, 100);
 })(10);
+
+
+module.exports = {
+  addLevelDBData: addLevelDBData,
+  getLevelDBData: getLevelDBData,
+  addDataToLevelDB: addDataToLevelDB,
+  getDBLength: getDBLength
+}
