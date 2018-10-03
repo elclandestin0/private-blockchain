@@ -6,56 +6,77 @@ const level = require('level');
 const chainDB = './chaindata';
 const db = level(chainDB);
 
-// Add data to levelDB with key/value pair
 function addLevelDBData(key, value) {
   return new Promise(function (resolve, reject) {
     db.put(key, value)
-      .on('error', function (err) {
-        reject(err);
-      }).on('close', function (value) {
+      .then(function () {
         resolve(value);
       })
-  })
+      .catch(function (error) {
+        console.log("found an error while adding DB data!");
+        reject(error);
+      })
+  });
+}
+
+
+function addLevelDBData(key, value) {
+  return new Promise(function (resolve, reject) {
+    db.put(key, value)
+      .then(function () {
+        resolve(value);
+      })
+      .catch(function (error) {
+        console.log("found an error while adding DB data!");
+        reject(error);
+      })
+  });
 }
 
 // Get data from levelDB with key
 function getLevelDBData(key) {
   return new Promise(function (resolve, reject) {
     db.get(key)
-      .on('error', function (err) {
-        reject(err);
-      }).on('close', function (value) {
+      .then(function (value) {
         resolve(value);
       })
-  });
+      .catch(function (error) {
+        console.log(error);
+        reject(error);
+      })
+  })
 }
 
 // Add data to levelDB with value
-function addDataToLevelDB(key, value) {
-  let i = 0;
+function addDataToLevelDB(value) {
   return new Promise(function (resolve, reject) {
+    let i = 0;
     db.createReadStream()
       .on('data', function (data) {
         i++;
       }).on('error', function (err) {
         reject(err);
-      }).on('close', function () {
-        console.log('Block #' + i);
-        addLevelDBData(key, value);
-        resolve(value);
-      });
-  });
+        return console.log('Unable to read data stream!', err)
+      })
+      .on('close', function () {
+        console.log("Block #" + i);
+        addLevelDBData(i, value);
+      })
+  })
 }
 
-function getChainHeight() {
-  let height = 0;
+function getDBLength() {
   return new Promise(function (resolve, reject) {
+    let height = 0;
     db.createReadStream()
-      .on('data', function () {
+      .on('data', function (data) {
         height++;
-      }).on('error', function (err) {
+      })
+      .on('error', function (err) {
         reject(err);
-      }).on('close', function () {
+        return console.log("Unable to get data height!", err);
+      })
+      .on('close', function () {
         resolve(height);
       })
   })
