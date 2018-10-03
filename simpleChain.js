@@ -29,53 +29,80 @@ class Blockchain {
     this.addBlock(new Block("First block in the chain - Genesis block"));
   }
 
-  // Add new block
-  addBlock(newBlock) {
-    // Block height
-    level.getDBLength()
-      .then((height) => {
-        newBlock.height = height + 1;
-        if (height > 0) {
-          level.getLevelDBData(newBlock.height).then(value => {
-            newBlock.previousBlockHash = value.hash;
-          })
-        }
-      });
-    // UTC timestamp
-    newBlock.time = new Date().getTime().toString().slice(0, -3);
-    // Block hash with SHA256 using newBlock and converting to a string
-    newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
-    // Adding block object to chain
-    level.addLevelDBData(newBlock.height, JSON.stringify(newBlock).toString()).then(value => {
-      console.log(value);
+  checkGenesisBlock(block) {
+    return new Promise(function (resolve) {
+      if (block.body === "First block in the chain - Genesis block") {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
     });
   }
 
-
-
-  // get block
-  getBlock(blockHeight) {
-    // return object as a single string
+  // Add new block
+  addBlock(newBlock) {
     return new Promise(function (resolve, reject) {
-      db.get(blockHeight, function (err, value) {
-        if (err) return console.log("Can't find block!", err);
-        resolve(value);
-      })
+      // Block height
+      if (newBlock.body != "First block in the chain - Genesis block") {
+        level.getDBLength()
+          .then((height) => {
+            console.log("old height: " + height);
+            newBlock.height = height + 1;
+            console.log("new height: " + newBlock.height);
+            if (height > 0) {
+              level.getLevelDBData(newBlock.height - 1)
+                .then(value => {
+                  console.log("previous block hash: " + newBlock.previousBlockHash);
+                  newBlock.previousBlockHash = value.hash;
+                })
+                .catch(function (error) {
+                  reject(error);
+                })
+            }
+          })
+          .then(function () {
+            newBlock.time = new Date().getTime().toString().slice(0, -3);
+            newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
+            console.log("newBlock hash is:" + newBlock.hash);
+            console.log("newBlock time is: " + newBlock.time);
+          })
+          .then(function () {
+            // Adding block object to chain
+            level.addLevelDBData(newBlock.height, JSON.stringify(newBlock).toString()).then(value => {
+              console.log(value);
+              resolve(value);
+            });
+          })
+          .catch(function (error) {
+            console.log(error);
+            reject(error);
+          });
+      } else {
+        newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
+      }
+
     })
   }
 
+
+
   // validate block
   validateBlock(blockHeight) {
-    // get block object
-    let block = this.getBlock(blockHeight);
-    // get block hash
-    let blockHash = block.hash;
-    // remove block hash to test block integrity
-    block.hash = '';
-    // generate block hash
-    let validBlockHash = SHA256(JSON.stringify(block)).toString();
-    // Compare
-    return new Promise(function (resolve) {
+    return new Promise(function (resolve, reject) {
+      // get block object
+      const block = "";
+      level.getLevelDBData(blockHeight)
+        .then(value => {
+          block = value;
+          resolve(value);
+        })
+      // get block hash
+      let blockHash = block.hash;
+      // remove block hash to test block integrity
+      block.hash = '';
+      // generate block hash
+      let validBlockHash = SHA256(JSON.stringify(block)).toString();
+      // Compare
       if (blockHash === validBlockHash) {
         resolve(true);
       } else {
@@ -116,5 +143,5 @@ let myBlockChain = new Blockchain();
       i++;
       if (i < 10) theLoop(i);
     });
-  }, 10000);
+  }, 5000);
 })(0);

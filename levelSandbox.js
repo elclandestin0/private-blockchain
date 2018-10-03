@@ -41,7 +41,7 @@ function getLevelDBData(key) {
         resolve(value);
       })
       .catch(function (error) {
-        console.log("found an error while getting DB data!");
+        console.log(error);
         reject(error);
       })
   })
