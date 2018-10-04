@@ -20,23 +20,25 @@ function addLevelDBData(key, value) {
 }
 
 
-function addLevelDBData(key, value) {
-  return new Promise(function (resolve, reject) {
-    db.put(key, value)
-      .then(function () {
-        resolve(value);
-      })
-      .catch(function (error) {
-        console.log("found an error while adding DB data!");
-        reject(error);
-      })
-  });
-}
-
 // Get data from levelDB with key
 function getLevelDBData(key) {
   return new Promise(function (resolve, reject) {
     db.get(key)
+      .then(function (value) {
+        console.log(value);
+        resolve(value);
+      })
+      .catch(function (error) {
+        console.log(error);
+        reject(error);
+      })
+  })
+}
+
+
+function getBlock(blockHeight) {
+  return new Promise((resolve, reject) => {
+    db.get(blockHeight)
       .then(function (value) {
         resolve(value);
       })
@@ -46,6 +48,7 @@ function getLevelDBData(key) {
       })
   })
 }
+
 
 // Add data to levelDB with value
 function addDataToLevelDB(value) {
@@ -65,7 +68,7 @@ function addDataToLevelDB(value) {
   })
 }
 
-function getDBLength() {
+function getBlockHeight() {
   return new Promise(function (resolve, reject) {
     let height = 0;
     db.createReadStream()
@@ -94,9 +97,18 @@ function getDBLength() {
 |  ===========================================================================*/
 
 
-(function theLoop(i) {
-  setTimeout(function () {
-    addDataToLevelDB('Testing data');
-    if (--i) theLoop(i);
-  }, 100);
-})(10);
+// (function theLoop(i) {
+//   setTimeout(function () {
+//     addDataToLevelDB('Testing data');
+//     if (--i) theLoop(i);
+//   }, 100);
+// })(10);
+
+
+module.exports = {
+  addLevelDBData: addLevelDBData,
+  getLevelDBData: getLevelDBData,
+  addDataToLevelDB: addDataToLevelDB,
+  getBlockHeight: getBlockHeight,
+  getBlock: getBlock
+}
