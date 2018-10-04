@@ -29,31 +29,31 @@ class Blockchain {
     this.addBlock(new Block("First block in the chain - Genesis block"));
   }
 
-  checkGenesisBlock(block) {
-    return new Promise(function (resolve) {
-      if (block.body === "First block in the chain - Genesis block") {
-        resolve(true);
-      } else {
-        resolve(false);
-      }
-    });
-  }
-
   // Add new block
   addBlock(newBlock) {
     return new Promise(function (resolve, reject) {
       // Block height
       if (newBlock.body != "First block in the chain - Genesis block") {
-        level.getDBLength()
+        console.log("-------------------");
+        console.log("Adding new block");
+        level.getBlockHeight()
           .then((height) => {
-            console.log("old height: " + height);
-            newBlock.height = height + 1;
-            console.log("new height: " + newBlock.height);
+            console.log("Height of chain is: " + height);
+            newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
+            console.log("Hash: " + newBlock.hash);
+            newBlock.height = height;
+            console.log("Height: " + newBlock.height);
+            console.log("Data: " + newBlock.body);
+            newBlock.time = new Date().getTime().toString().slice(0, -3);
+            console.log("Time: " + newBlock.time);
             if (height > 0) {
-              level.getLevelDBData(newBlock.height - 1)
+              level.getBlock(height - 1)
                 .then(value => {
-                  console.log("previous block hash: " + newBlock.previousBlockHash);
+                  console.log("Block returned from getBlock: " + value);
+                  value = JSON.parse(value);
                   newBlock.previousBlockHash = value.hash;
+                  console.log("Previous block hash: " + newBlock.previousBlockHash);
+                  console.log("-------------------");
                 })
                 .catch(function (error) {
                   reject(error);
@@ -61,15 +61,9 @@ class Blockchain {
             }
           })
           .then(function () {
-            newBlock.time = new Date().getTime().toString().slice(0, -3);
-            newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
-            console.log("newBlock hash is:" + newBlock.hash);
-            console.log("newBlock time is: " + newBlock.time);
-          })
-          .then(function () {
             // Adding block object to chain
             level.addLevelDBData(newBlock.height, JSON.stringify(newBlock).toString()).then(value => {
-              console.log(value);
+              console.log("about to add a block: " + value);
               resolve(value);
             });
           })
@@ -78,11 +72,23 @@ class Blockchain {
             reject(error);
           });
       } else {
+        console.log("-------------------");
+        console.log("Adding genesis block");
         newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
+        console.log("Hash: " + newBlock.hash);
+        console.log("Height: " + newBlock.height);
+        console.log("Data: " + newBlock.body);
+        console.log("Time: " + newBlock.time);
+        console.log("Previous block hash:" + newBlock.previousBlockHash);
+        level.addLevelDBData(newBlock.height, JSON.stringify(newBlock).toString()).then(value => {
+          resolve(value);
+        });
+        console.log("-------------------");
       }
 
     })
   }
+
 
 
 
@@ -91,7 +97,7 @@ class Blockchain {
     return new Promise(function (resolve, reject) {
       // get block object
       const block = "";
-      level.getLevelDBData(blockHeight)
+      level.getBlock(blockHeight)
         .then(value => {
           block = value;
           resolve(value);
@@ -143,5 +149,5 @@ let myBlockChain = new Blockchain();
       i++;
       if (i < 10) theLoop(i);
     });
-  }, 5000);
+  }, 10000);
 })(0);
