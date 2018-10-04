@@ -5,10 +5,6 @@
 const SHA256 = require('crypto-js/sha256');
 const level = require('./levelSandbox.js');
 
-const level = require('level');
-const chainDB = './chaindata';
-const db = level(chainDB);
-
 /* ===== Block Class ==============================
 |  Class with a constructor for block 			   |
 |  ===============================================*/
@@ -52,7 +48,6 @@ class Blockchain {
             if (height > 0) {
               level.getBlock(height - 1)
                 .then(value => {
-                  console.log("Block returned from getBlock: " + value);
                   value = JSON.parse(value);
                   newBlock.previousBlockHash = value.hash;
                   console.log("Previous block hash: " + newBlock.previousBlockHash);
