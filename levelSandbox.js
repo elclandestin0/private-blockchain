@@ -80,6 +80,7 @@ function getBlockHeight() {
         return console.log("Unable to get data height!", err);
       })
       .on('close', function () {
+        console.log("# oF blocks in the chain: " + height);
         resolve(height);
       })
   })

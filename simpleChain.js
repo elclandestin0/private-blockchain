@@ -25,7 +25,11 @@ class Block {
 
 class Blockchain {
   constructor() {
-    this.addBlock(new Block("First block in the chain - Genesis block"));
+    level.getBlockHeight().then(value => {
+      if (value === 0) {
+        this.addBlock(new Block("First block in the chain - Genesis block"));
+      }
+    });
   }
 
   // Add new block
@@ -45,12 +49,13 @@ class Blockchain {
             console.log("Data: " + newBlock.body);
             newBlock.time = new Date().getTime().toString().slice(0, -3);
             console.log("Time: " + newBlock.time);
+            let previousBlockHash = "";
             if (height > 0) {
               level.getBlock(height - 1)
-                .then(value => {
+                .then(function (value) {
                   value = JSON.parse(value);
-                  newBlock.previousBlockHash = value.hash;
-                  console.log("Previous block hash: " + newBlock.previousBlockHash);
+                  previousBlockHash = value.hash;
+                  console.log("Previous block hash: " + previousBlockHash);
                   console.log("-------------------");
                 })
                 .catch(function (error) {
@@ -60,8 +65,8 @@ class Blockchain {
           })
           .then(function () {
             // Adding block object to chain
+            newBlock.previousBlockHash = previousBlockHash;
             level.addLevelDBData(newBlock.height, JSON.stringify(newBlock).toString()).then(value => {
-              console.log("about to add a block: " + value);
               resolve(value);
             });
           })
