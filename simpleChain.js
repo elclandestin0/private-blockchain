@@ -39,36 +39,32 @@ class Blockchain {
       if (newBlock.body != "First block in the chain - Genesis block") {
         console.log("-------------------");
         console.log("Adding new block");
+        newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
+        console.log("Hash: " + newBlock.hash);
+        console.log("Data: " + newBlock.body);
+        newBlock.time = new Date().getTime().toString().slice(0, -3);
+        console.log("Time: " + newBlock.time);
         level.getBlockHeight()
-          .then((height) => {
-            console.log("Height of chain is: " + height);
-            newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
-            console.log("Hash: " + newBlock.hash);
+          .then(function (height) {
             newBlock.height = height;
             console.log("Height: " + newBlock.height);
-            console.log("Data: " + newBlock.body);
-            newBlock.time = new Date().getTime().toString().slice(0, -3);
-            console.log("Time: " + newBlock.time);
-            let previousBlockHash = "";
-            if (height > 0) {
-              level.getBlock(height - 1)
-                .then(function (value) {
-                  value = JSON.parse(value);
-                  previousBlockHash = value.hash;
-                  console.log("Previous block hash: " + previousBlockHash);
-                  console.log("-------------------");
-                })
-                .catch(function (error) {
-                  reject(error);
-                })
-            }
           })
           .then(function () {
+            level.getBlock(newBlock.height - 1)
+              .then(function (value) {
+                value = JSON.parse(value);
+                newBlock.previousBlockHash = value.hash;
+                console.log("New block's previous hash is: " + newBlock.previousBlockHash);
+              })
+              .then(function () {
+                console.log("about to add the new block to the chain");
+                level.addLevelDBData(newBlock.height, JSON.stringify(newBlock).toString()).then(value => {
+                  console.log("Block data: " + value);
+                  resolve(value);
+                  console.log("-------------------");
+                });
+              })
             // Adding block object to chain
-            newBlock.previousBlockHash = previousBlockHash;
-            level.addLevelDBData(newBlock.height, JSON.stringify(newBlock).toString()).then(value => {
-              resolve(value);
-            });
           })
           .catch(function (error) {
             console.log(error);
@@ -92,9 +88,6 @@ class Blockchain {
     })
   }
 
-
-
-
   // validate block
   validateBlock(blockHeight) {
     return new Promise(function (resolve, reject) {
@@ -103,42 +96,52 @@ class Blockchain {
       level.getBlock(blockHeight)
         .then(value => {
           block = value;
-          resolve(value);
+          // get block hash
+          let blockHash = block.hash;
+          // remove block hash to test block integrity
+          block.hash = '';
+          // generate block hash
+          let validBlockHash = SHA256(JSON.stringify(block)).toString();
+          // Compare
+          if (blockHash === validBlockHash) {
+            resolve(true);
+          } else {
+            resolve(false);
+          }
         })
-      // get block hash
-      let blockHash = block.hash;
-      // remove block hash to test block integrity
-      block.hash = '';
-      // generate block hash
-      let validBlockHash = SHA256(JSON.stringify(block)).toString();
-      // Compare
-      if (blockHash === validBlockHash) {
-        resolve(true);
-      } else {
-        resolve(false);
-      }
     })
   }
 
   // Validate blockchain
   validateChain() {
     let errorLog = [];
-    for (var i = 0; i < this.chain.length - 1; i++) {
-      // validate block
-      if (!this.validateBlock(i)) errorLog.push(i);
-      // compare blocks hash link
-      let blockHash = this.chain[i].hash;
-      let previousHash = this.chain[i + 1].previousBlockHash;
-      if (blockHash !== previousHash) {
-        errorLog.push(i);
+    getBlockHeight().then(function (value) {
+      for (var i = 0; i < value - 1; i++) {
+        // validate block
+        validateBlock(i).then(function (booleanValue) {
+          if (booleanValue === false) errorLog.push(i);
+          // compare blocks hash link
+          level.getBlock(i).then(function (block) {
+            let parsedBlockOne = JSON.parse(block);
+            let hash = parsedBlock.hash;
+            level.getBlock(i + 1).then(function (block) {
+              let parsedBlockTwo = JSON.parse(block);
+              let previousHash = parsedBlockTwo.hash;
+              if (hash !== previousHash) {
+                errorLog.push(i);
+              }
+            })
+          })
+        })
       }
-    }
-    if (errorLog.length > 0) {
-      console.log('Block errors = ' + errorLog.length);
-      console.log('Blocks: ' + errorLog);
-    } else {
-      console.log('No errors detected');
-    }
+      if (errorLog.length > 0) {
+        console.log('Block errors = ' + errorLog.length);
+        console.log('Blocks: ' + errorLog);
+      } else {
+        console.log('No errors detected');
+      }
+    })
+
   }
 }
 
