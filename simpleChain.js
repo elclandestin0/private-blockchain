@@ -4,7 +4,6 @@
 
 const SHA256 = require('crypto-js/sha256');
 const level = require('./levelSandbox.js');
-
 /* ===== Block Class ==============================
 |  Class with a constructor for block 			   |
 |  ===============================================*/
@@ -30,6 +29,18 @@ class Blockchain {
         this.addBlock(new Block("First block in the chain - Genesis block"));
       }
     });
+  }
+
+  getBlock(blockHeight) {
+    return new Promise(function (resolve, reject) {
+      level.getBlock(blockHeight)
+        .then(function (value) {
+          resolve(value);
+        })
+        .catch(function (error) {
+          reject(error);
+        })
+    })
   }
 
   // Add new block
@@ -58,11 +69,16 @@ class Blockchain {
               })
               .then(function () {
                 console.log("about to add the new block to the chain");
-                level.addLevelDBData(newBlock.height, JSON.stringify(newBlock).toString()).then(value => {
-                  console.log("Block data: " + value);
-                  resolve(value);
-                  console.log("-------------------");
-                });
+                level.addLevelDBData(newBlock.height, JSON.stringify(newBlock).toString())
+                  .then(value => {
+                    console.log("Block data: " + value);
+                    resolve(value);
+                    console.log("-------------------");
+                  });
+              })
+              .catch(function (error) {
+                console.log(error);
+                reject(error);
               })
             // Adding block object to chain
           })
@@ -144,6 +160,7 @@ class Blockchain {
 
   }
 }
+
 
 
 let myBlockChain = new Blockchain();
