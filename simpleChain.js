@@ -4,6 +4,7 @@
 
 const SHA256 = require('crypto-js/sha256');
 const level = require('./levelSandbox.js');
+
 /* ===== Block Class ==============================
 |  Class with a constructor for block 			   |
 |  ===============================================*/
@@ -122,10 +123,9 @@ class Blockchain {
   validateBlock(blockHeight) {
     return new Promise(function (resolve, reject) {
       // get block object
-      let block = "";
       level.getBlock(blockHeight)
         .then(value => {
-          block = value;
+          let block = JSON.parse(value);
           // get block hash
           let blockHash = block.hash;
           // remove block hash to test block integrity
@@ -147,26 +147,53 @@ class Blockchain {
 
   // Validate blockchain
   validateChain() {
-    return new Promise(function (resolve, reject) {
-      let errorLog = [];
-      level.getBlockHeight().then(function (value) {
-        for (var i = 0; i < value - 1; i++) {
+    let errorLog = [];
+    let validateBlockPromises = [];
+    level.getBlockHeight()
+      .then(value => {
+        for (var i = 0; i < value; i++) {
           // validate block
-          validateBlock(i).then(function (booleanValue) {
-            if (booleanValue === false) errorLog.push(i);
-            // compare blocks hash link
-            level.getBlock(i).then(function (block) {
+          this.validateBlock(i)
+            .then(function (booleanValue) {
+              if (booleanValue === false) errorLog.push(i);
+            })
+          // compare blocks hash link
+          level.getBlock(i)
+            .then(function (block) {
               let parsedBlockOne = JSON.parse(block);
               let hash = parsedBlockOne.hash;
-              level.getBlock(i + 1).then(function (block) {
-                let parsedBlockTwo = JSON.parse(block);
-                let previousHash = parsedBlockTwo.hash;
-                if (hash !== previousHash) {
-                  errorLog.push(i);
-                }
-              })
+              let nextBlockHeight = parsedBlockOne.height + 1;
+              if (nextBlockHeight == value) {
+                console.log("reached it's limit!");
+                return;
+              }
+              console.log("hash of block : " + hash);
+              level.getBlock(nextBlockHeight)
+                .then(function (block) {
+                  let parsedBlockTwo = JSON.parse(block);
+                  let previousBlockHash = parsedBlockTwo.previousBlockHash;
+                  console.log("previous hash of block : " + previousBlockHash);
+                  if (hash !== previousBlockHash) {
+                    errorLog.push(i);
+                  }
+                })
             })
-          })
+
+          //   .then(function () {
+          //     let j = i + 1;
+          //     if (j === value) {
+          //       console.log("reached the limit! ");
+          //       return;
+          //     };
+          //     level.getBlock(j)
+          //       .then(function (block) {
+          //         let parsedBlockTwo = JSON.parse(block);
+          //         let previousHash = parsedBlockTwo.previousHash;
+          //         if (hash !== previousHash) {
+          //           errorLog.push(i);
+          //         }
+          //       })
+          //   })
         }
         if (errorLog.length > 0) {
           console.log('Block errors = ' + errorLog.length);
@@ -175,26 +202,30 @@ class Blockchain {
           console.log('No errors detected');
         }
       })
-    });
+
   }
 }
 
 
 
 let myBlockChain = new Blockchain();
-(function theLoop(i) {
-  setTimeout(function () {
-    let blockTest = new Block("Test Block - " + (i + 1));
-    myBlockChain.addBlock(blockTest).then((result) => {
-      console.log(result);
-      i++;
-      if (i < 5) theLoop(i);
-    });
-  }, 2000);
-})(0);
+// myBlockChain.validateBlock(0).then(x => console.log(x));
+myBlockChain.validateChain();
+// (function theLoop(i) {
+//   setTimeout(function () {
+//     let blockTest = new Block("Test Block - " + (i + 1));
+//     myBlockChain.addBlock(blockTest).then((result) => {
+//       console.log(result);
+//       i++;
+//       if (i < 5) theLoop(i);
+//     });
+//   }, 2000);
+// })(0);
 
 /** commands for node: 
  * 
  * blockchain = new Blockchain();
- * blockchain.addBlock("memo");
+ * blockchain.addBlock(new Block("memo 1"));
+ * blockchain.validateBlock(3).then(x => console.log(x));
+ * blockchain.validateChain();
  */
