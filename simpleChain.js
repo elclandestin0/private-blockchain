@@ -25,7 +25,7 @@ class Block {
 
 class Blockchain {
   constructor() {
-    level.getBlockHeight().then(value => {
+    level.countBlocks().then(value => {
       if (value === 0) {
         this.addBlock(new Block("First block in the chain - Genesis block"));
       }
@@ -66,7 +66,7 @@ class Blockchain {
         console.log("Data: " + newBlock.body);
         newBlock.time = new Date().getTime().toString().slice(0, -3);
         console.log("Time: " + newBlock.time);
-        level.getBlockHeight()
+        level.countBlocks()
           .then(function (height) {
             newBlock.height = height;
             console.log("Height: " + newBlock.height);
@@ -148,14 +148,16 @@ class Blockchain {
   // Validate blockchain
   validateChain() {
     let errorLog = [];
-    let validateBlockPromises = [];
-    level.getBlockHeight()
+    level.countBlocks()
       .then(value => {
         for (var i = 0; i < value; i++) {
           // validate block
           this.validateBlock(i)
             .then(function (booleanValue) {
               if (booleanValue === false) errorLog.push(i);
+              else {
+                console.log("Validated block.");
+              }
             })
           // compare blocks hash link
           level.getBlock(i)
@@ -172,37 +174,24 @@ class Blockchain {
                 .then(function (block) {
                   let parsedBlockTwo = JSON.parse(block);
                   let previousBlockHash = parsedBlockTwo.previousBlockHash;
-                  console.log("previous hash of block : " + previousBlockHash);
+                  console.log("previous hash of block: " + previousBlockHash);
                   if (hash !== previousBlockHash) {
                     errorLog.push(i);
+                  } else {
+                    console.log("Block hash is same as next block's previous hash!");
                   }
                 })
             })
-
-          //   .then(function () {
-          //     let j = i + 1;
-          //     if (j === value) {
-          //       console.log("reached the limit! ");
-          //       return;
-          //     };
-          //     level.getBlock(j)
-          //       .then(function (block) {
-          //         let parsedBlockTwo = JSON.parse(block);
-          //         let previousHash = parsedBlockTwo.previousHash;
-          //         if (hash !== previousHash) {
-          //           errorLog.push(i);
-          //         }
-          //       })
-          //   })
         }
         if (errorLog.length > 0) {
           console.log('Block errors = ' + errorLog.length);
           console.log('Blocks: ' + errorLog);
+          return false;
         } else {
           console.log('No errors detected');
+          return true;
         }
       })
-
   }
 }
 
@@ -210,17 +199,17 @@ class Blockchain {
 
 let myBlockChain = new Blockchain();
 // myBlockChain.validateBlock(0).then(x => console.log(x));
-myBlockChain.validateChain();
-// (function theLoop(i) {
-//   setTimeout(function () {
-//     let blockTest = new Block("Test Block - " + (i + 1));
-//     myBlockChain.addBlock(blockTest).then((result) => {
-//       console.log(result);
-//       i++;
-//       if (i < 5) theLoop(i);
-//     });
-//   }, 2000);
-// })(0);
+// myBlockChain.validateChain();
+(function theLoop(i) {
+  setTimeout(function () {
+    let blockTest = new Block("Test Block - " + (i + 1));
+    myBlockChain.addBlock(blockTest).then((result) => {
+      console.log(result);
+      i++;
+      if (i < 5) theLoop(i);
+    });
+  }, 5000);
+})(0);
 
 /** commands for node: 
  * 

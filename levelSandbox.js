@@ -70,6 +70,29 @@ function addDataToLevelDB(value) {
 
 function getBlockHeight() {
   return new Promise(function (resolve, reject) {
+    blockHeight = 0;
+    db.createReadStream()
+      .on('data', function (data) {
+        height++;
+      })
+      .on('error', function (err) {
+        reject(err);
+        return console.log("Unable to get data height!", err);
+      })
+      .on('close', function () {
+        console.log("height of last block: " + height);
+        db.get(height)
+          .then(value => {
+            let block = JSON.parse(value);
+            blockHeight = block.height;
+          })
+        resolve(blockHeight);
+      })
+  })
+}
+
+function countBlocks() {
+  return new Promise(function (resolve, reject) {
     let height = 0;
     db.createReadStream()
       .on('data', function (data) {
@@ -80,11 +103,12 @@ function getBlockHeight() {
         return console.log("Unable to get data height!", err);
       })
       .on('close', function () {
-        console.log("Height of last block: " + height);
+        console.log("height of last block: " + height);
         resolve(height);
       })
   })
 }
+
 
 /* ===== Testing ==============================================================|
 |  - Self-invoking function to add blocks to chain                             |
@@ -111,5 +135,6 @@ module.exports = {
   getLevelDBData: getLevelDBData,
   addDataToLevelDB: addDataToLevelDB,
   getBlockHeight: getBlockHeight,
-  getBlock: getBlock
+  getBlock: getBlock,
+  countBlocks: countBlocks
 }
