@@ -122,14 +122,6 @@ function countBlocks() {
 |  ===========================================================================*/
 
 
-// (function theLoop(i) {
-//   setTimeout(function () {
-//     addDataToLevelDB('Testing data');
-//     if (--i) theLoop(i);
-//   }, 100);
-// })(10);
-
-
 module.exports = {
   addLevelDBData: addLevelDBData,
   getLevelDBData: getLevelDBData,

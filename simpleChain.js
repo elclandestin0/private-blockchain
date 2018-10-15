@@ -4,20 +4,10 @@
 
 const SHA256 = require('crypto-js/sha256');
 const level = require('./levelSandbox.js');
+const block = require('./block.js').Block;
 
-/* ===== Block Class ==============================
-|  Class with a constructor for block 			   |
-|  ===============================================*/
-
-class Block {
-  constructor(data) {
-    this.hash = "",
-      this.height = 0,
-      this.body = data,
-      this.time = 0,
-      this.previousBlockHash = ""
-  }
-}
+const express = require('express')
+const app = express()
 
 /* ===== Blockchain Class ==========================
 |  Class with a constructor for new blockchain  		|
@@ -27,7 +17,7 @@ class Blockchain {
   constructor() {
     level.countBlocks().then(value => {
       if (value === 0) {
-        this.addBlock(new Block("First block in the chain - Genesis block"));
+        this.addBlock(new block("First block in the chain - Genesis block"));
       }
     });
   }
@@ -195,26 +185,6 @@ class Blockchain {
   }
 }
 
+app.get('/', (req, res) => res.send('Hello World!'))
 
-
-let myBlockChain = new Blockchain();
-// myBlockChain.validateBlock(0).then(x => console.log(x));
-// myBlockChain.validateChain();
-(function theLoop(i) {
-  setTimeout(function () {
-    let blockTest = new Block("Test Block - " + (i + 1));
-    myBlockChain.addBlock(blockTest).then((result) => {
-      console.log(result);
-      i++;
-      if (i < 5) theLoop(i);
-    });
-  }, 5000);
-})(0);
-
-/** commands for node: 
- * 
- * blockchain = new Blockchain();
- * blockchain.addBlock(new Block("memo 1"));
- * blockchain.validateBlock(3).then(x => console.log(x));
- * blockchain.validateChain();
- */
+app.listen(8000, () => console.log('Example app listening on port 8000!'))
