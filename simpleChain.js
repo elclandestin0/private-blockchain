@@ -125,8 +125,10 @@ class Blockchain {
           // Compare
           if (blockHash === validBlockHash) {
             resolve(true);
+            console.log("true");
           } else {
             resolve(false);
+            console.log("true");
           }
         })
         .catch(function (error) {
@@ -185,6 +187,23 @@ class Blockchain {
   }
 }
 
-app.get('/', (req, res) => res.send('Hello World!'))
+blockchain = new Blockchain();
+app.get('/block/:blockNumber', (req, res) => blockchain.getBlock(req.params['blockNumber'])
+  .then(value => {
+    res.send(value);
+  }))
+
+app.post('/block/:blockData', (req, res) => {
+  if (req.params["blockData"] === "") {
+    res.send("Cannot add a block if nothing is added!")
+    console.log("Cannot add a block if nothing is added!")
+    return;
+  } else {
+    blockchain.addBlock(new block(req.params['blockData']))
+      .then(value => {
+        res.send(value);
+      })
+  }
+})
 
 app.listen(8000, () => console.log('Example app listening on port 8000!'))
