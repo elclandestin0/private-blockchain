@@ -190,18 +190,20 @@ class Blockchain {
 blockchain = new Blockchain();
 app.get('/block/:blockNumber', (req, res) => blockchain.getBlock(req.params['blockNumber'])
   .then(value => {
-    res.send(value);
+    let text = JSON.parse(value);
+    res.send(text);
   }))
 
 app.post('/block/:blockData', (req, res) => {
-  if (req.params["blockData"] === "") {
+  if (req.params["blockData"] == "") {
     res.send("Cannot add a block if nothing is added!")
     console.log("Cannot add a block if nothing is added!")
     return;
   } else {
     blockchain.addBlock(new block(req.params['blockData']))
-      .then(value => {
-        res.send(value);
+      .then(value => {     
+        let text = JSON.parse(value);
+        res.send(text);
       })
   }
 })
