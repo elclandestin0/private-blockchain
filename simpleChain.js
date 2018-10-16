@@ -192,6 +192,10 @@ app.get('/block/:blockNumber', (req, res) => blockchain.getBlock(req.params['blo
   .then(value => {
     let text = JSON.parse(value);
     res.send(text);
+  })
+  .catch(function (error) {
+    console.log("No block found!" + error);
+    res.send("No block found!");
   }))
 
 app.post('/block/:blockData', (req, res) => {
@@ -204,6 +208,10 @@ app.post('/block/:blockData', (req, res) => {
       .then(value => {     
         let text = JSON.parse(value);
         res.send(text);
+      })
+      .catch(function(error){
+        console.log("Couldn't add block!" + error);
+        res.send("Couldn't add block!");
       })
   }
 })
