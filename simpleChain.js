@@ -195,25 +195,29 @@ app.get('/block/:blockNumber', (req, res) => blockchain.getBlock(req.params['blo
   })
   .catch(function (error) {
     console.log("No block found!" + error);
-    res.send("No block found!");
+    res.send("No block found! " + error);
   }))
 
 app.post('/block/:blockData', (req, res) => {
-  if (req.params["blockData"] == "") {
-    res.send("Cannot add a block if nothing is added!")
-    console.log("Cannot add a block if nothing is added!")
-    return;
-  } else {
-    blockchain.addBlock(new block(req.params['blockData']))
-      .then(value => {     
-        let text = JSON.parse(value);
-        res.send(text);
-      })
-      .catch(function(error){
-        console.log("Couldn't add block!" + error);
-        res.send("Couldn't add block!");
-      })
-  }
+  blockchain.addBlock(new block(req.params['blockData']))
+    .then(value => {
+      let text = JSON.parse(value);
+      res.send(text);
+    })
+    .catch(function (error) {
+      res.send("Couldn't add block!");
+    })
+})
+
+app.post('/block/', (req, res) => {
+  blockchain.addBlock(new block('Testing block with no content'))
+    .then(value => {
+      let text = JSON.parse(value);
+      res.send(text);
+    })
+    .catch(function (error) {
+      res.send("Couldn't add block!");
+    })
 })
 
 app.listen(8000, () => console.log('Example app listening on port 8000!'))
