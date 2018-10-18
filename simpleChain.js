@@ -8,7 +8,6 @@ const bodyParser = require('body-parser');
 
 const level = require('./levelSandbox.js');
 const block = require('./block.js').Block;
-const app = express()
 
 /* ===== Blockchain Class ==========================
 |  Class with a constructor for new blockchain  		|
@@ -189,6 +188,7 @@ class Blockchain {
 }
 
 blockchain = new Blockchain();
+const app = express()
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({
   extended: true
@@ -201,31 +201,31 @@ app.get('/block/:blockNumber', (req, res) => blockchain.getBlock(req.params['blo
   })
   .catch(function (error) {
     console.log("No block found!" + error);
-    res.send("No block found! " + error);
+    res.json("No block found! " + error);
   }))
 
 app.post('/block/:blockData', (req, res) => {
   blockchain.addBlock(new block(req.params['blockData']))
     .then(value => {
-      let text = JSON.parse(value);
-      res.send(text);
+      let addedBlock = JSON.parse(value);
+      res.send(addedBlock);
     })
     .catch(function (error) {
-      res.send("Couldn't add block!");
+      res.json("Couldn't add block!");
     })
 })
 
 app.post('/block/', (req, res) => {
-  if (req.body.body === "") {
+  if (req.body.body === "" || req.body.body === undefined) {
     res.send("Could not add block!");
   } else {
     blockchain.addBlock(new block(req.body.body))
       .then(value => {
-        let text = JSON.parse(value);
-        res.send(req.body);
+        let block = JSON.parse(value);
+        res.send(block);
       })
       .catch(function (error) {
-        res.send("Couldn't add block!");
+        res.json("Couldn't add block!");
       })
   }
 })
