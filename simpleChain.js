@@ -3,10 +3,11 @@
 |  =========================================================*/
 
 const SHA256 = require('crypto-js/sha256');
+const express = require('express');
+const bodyParser = require('body-parser');
+
 const level = require('./levelSandbox.js');
 const block = require('./block.js').Block;
-
-const express = require('express')
 const app = express()
 
 /* ===== Blockchain Class ==========================
@@ -188,6 +189,11 @@ class Blockchain {
 }
 
 blockchain = new Blockchain();
+app.use(bodyParser.json()); // for parsing application/json
+app.use(bodyParser.urlencoded({
+  extended: true
+})); // for parsing application/x-www-form-urlencoded
+
 app.get('/block/:blockNumber', (req, res) => blockchain.getBlock(req.params['blockNumber'])
   .then(value => {
     let text = JSON.parse(value);
@@ -210,14 +216,15 @@ app.post('/block/:blockData', (req, res) => {
 })
 
 app.post('/block/', (req, res) => {
-  blockchain.addBlock(new block('Testing block with no content'))
+  blockchain.addBlock(new block(req.body))
     .then(value => {
       let text = JSON.parse(value);
-      res.send(text);
+      res.send(req.body);
     })
     .catch(function (error) {
       res.send("Couldn't add block!");
     })
 })
+
 
 app.listen(8000, () => console.log('Example app listening on port 8000!'))
