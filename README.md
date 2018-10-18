@@ -35,7 +35,7 @@ begin listening on port `8000` and then fire up CURL or Postman. There are two A
 </code>
    <li> POST Block Endpoint (payload): 
   <code> localhost:8000/block/ </code> is the POST endpoint to add a block with the `body` acting as the data to be added within the block. If the `body` variable is empty, then no block is added.</li>
-     <b>Example:</b> <code> localhost:8000/block/test string </code> returns:
+     <b>Example:</b> <code> localhost:8000/block/ </code> returns:
     <code>
 
     {
