@@ -33,6 +33,19 @@ begin listening on port `8000` and then fire up CURL or Postman. There are two A
     "previousBlockHash": "706ed4ee28d41418187d256c506c1d8c0815ac72007c5f409921138c95e2706e"
     }
 </code>
+   <li> POST Block Endpoint (payload): 
+  <code> localhost:8000/block/ </code> is the POST endpoint to add a block with the `body` acting as the data to be added within the block. If the `body` variable is empty, then no block is added.</li>
+     <b>Example:</b> <code> localhost:8000/block/test string </code> returns:
+    <code>
+
+    {
+    "hash": "32986314b26b589e164f6c057c822ae43b3369d0e10186078c94af216daffa7e",
+    "height": 19,
+    "body": "test string",
+    "time": "1539725135",
+    "previousBlockHash": "706ed4ee28d41418187d256c506c1d8c0815ac72007c5f409921138c95e2706e"
+    }
+</code>
 </ul>
 
 

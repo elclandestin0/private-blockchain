@@ -216,14 +216,18 @@ app.post('/block/:blockData', (req, res) => {
 })
 
 app.post('/block/', (req, res) => {
-  blockchain.addBlock(new block(req.body))
-    .then(value => {
-      let text = JSON.parse(value);
-      res.send(req.body);
-    })
-    .catch(function (error) {
-      res.send("Couldn't add block!");
-    })
+  if (req.body.body === "") {
+    res.send("Could not add block!");
+  } else {
+    blockchain.addBlock(new block(req.body.body))
+      .then(value => {
+        let text = JSON.parse(value);
+        res.send(req.body);
+      })
+      .catch(function (error) {
+        res.send("Couldn't add block!");
+      })
+  }
 })
 
 
