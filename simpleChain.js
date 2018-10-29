@@ -8,6 +8,8 @@ const bodyParser = require('body-parser');
 
 const level = require('./levelSandbox.js');
 const block = require('./block.js').Block;
+const request = require('./localModules.js').Request;
+const response = require('./localModules.js').Response;
 
 /* ===== Blockchain Class ==========================
 |  Class with a constructor for new blockchain  		|
@@ -22,6 +24,15 @@ class Blockchain {
     });
   }
 
+  //#region begin request functions
+  requestValidation(address) {
+    let sampleRequest = new request(address);
+    let sampleResponse = new response(address, sampleRequest.time);
+    var parsedResponse = JSON.stringify(sampleResponse);
+    return parsedResponse;
+  }
+  //#endregion end request functions
+  //#region begin blockchain functions
   getBlock(blockHeight) {
     return new Promise(function (resolve, reject) {
       level.getBlock(blockHeight)
@@ -185,8 +196,11 @@ class Blockchain {
         }
       })
   }
+  //#endregion end blockchain functions
+
 }
 
+//#region begin blockchain API functions
 blockchain = new Blockchain();
 const app = express()
 app.use(bodyParser.json()); // for parsing application/json
@@ -230,5 +244,13 @@ app.post('/block/', (req, res) => {
   }
 })
 
+app.post('/requestValidation/', (req, res) => {
+  if (req.body.address === "" || req.body.address === undefined) {
+    res.send("No address provided!");
+  } else {
+    res.send(JSON.parse(blockchain.requestValidation(req.body.address)));
+  }
+})
 
+//#endregion begin blockchain API functions
 app.listen(8000, () => console.log('Example app listening on port 8000!'))
